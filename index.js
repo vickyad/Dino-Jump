@@ -1,5 +1,5 @@
 const grid = document.getElementById('grid')
-const doodler = document.createElement('div')
+const doodler = document.createElement('IMG')
 
 let doodlerLeftSpace = 50
 let startPoint = 150
@@ -19,6 +19,7 @@ let score = 0
 function createDoodler(){
     doodler.classList.add('doodler')
 
+    doodler.setAttribute("src", "./assets/dinossauro.svg")
     doodlerLeftSpace = plataforms[0].left
     doodler.style.left = `${doodlerLeftSpace}px`
     doodler.style.bottom = `${doodlerBottomSpace}px`
@@ -124,7 +125,7 @@ function control(e) {
             moveRight()
             break
         case 'ArrowUp':
-            //moveStraight()
+            moveStraight()
             break
     }
 }
