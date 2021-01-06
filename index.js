@@ -1,85 +1,92 @@
-/*Downloaded from https://www.codeseek.co/ainc/doodle-jump-complete-ZxGXwd */
+/* --> Constants <-- */
+// HTML Elements
 const restartDialog = document.getElementById('restart-dialog')
 const cancelButton = document.getElementById('cancel')
 const confirmButton = document.getElementById('confirm')
 
+// Assets
+let dinoImg
+let platformImg
+let backgroundImg
+
+// Board attirbutes
 const boardWidth = window.innerWidth > window.innerHeight? window.innerWidth * 0.55 : window.innerWidth
 const boardHeight = window.innerHeight
 
-let doodlerSize = Math.floor(boardHeight / 10)
-let doodlerX
-let doodlerY
-let doodlerVelocity
-let doodlerXSpeed = 4
+// Dino attributes
+let dinoSize = Math.floor(boardHeight / 10)
+let dinoX
+let dinoY
+let dinoVelocity
+let dinoXSpeed = 4
+
+// Platform attributes
 let platformHeight = Math.floor(boardHeight / 45)
 let platformWidth = platformHeight * 3
 let numOfPlatforms = Math.floor(boardHeight / 130)
 let platformList = []
 let platYChange = 0
+
+// General attributes
 let gameStarted
-let score = 0
-let doodlerImg
-let platformImg
-let backgroundImg
 let gameOver = false
+let score = 0
 
 
+/* --> Inicialization <-- */
 restartDialog.close()
 
-// ===========================
+
+/* --> Functions <-- */
 //  Preload the Image Sprites
-// ===========================
 function preload() {
-    doodlerImg = loadImage('./assets/dinossauro.svg')
+    dinoImg = loadImage('./assets/dinossauro.svg')
     platformImg = loadImage('./assets/platform.png')
     backgroundImg = loadImage('./assets/background.png')
 }
 
-// ===========================
 //  Controllers
-// ===========================
 function setup() {
     createCanvas(boardWidth,boardHeight)
     frameRate(60)
     gameStarted = false
-}
-
-function draw() {
-  background(backgroundImg)
     
-    if(gameStarted) {
-        //Draw the game
-        drawPlatforms()
-        drawDoodler()
-        checkCollision()
-        moveDoodler()
-        moveScreen()
-        fill('#121212')
-        textSize(60);
-        text(score, boardWidth - 80, boardHeight * 0.08)
-    } else if (gameOver){
-        gameOver = false
-
-        // Check if the user would like to restart the game
-        restartDialog.showModal()
-        confirmButton.addEventListener('click', () => {
-            restartDialog.close()
-        })
-        cancelButton.addEventListener('click', () => {
-            restartDialog.close()
-            remove()
-        })
+  }
+  
+  function draw() {
+    background(backgroundImg)
+    if(gameOver){
+      gameOver = false
+      // Check if the user would like to restart the game
+      restartDialog.showModal()
+      confirmButton.addEventListener('click', () => {
+        restartDialog.close()
+      })
+      cancelButton.addEventListener('click', () => {
+        restartDialog.close()
+        remove()
+      })
+    } else if(gameStarted) {
+      //Draw the game
+      drawPlatforms()
+      drawdino()
+      checkCollision()
+      movedino()
+      moveScreen()
+      fill('#121212')
+      textSize(60);
+      text(score, boardWidth - 80, boardHeight * 0.08)
     } else {
-        // Start menu
-        textSize(60);
-        text("Start", boardWidth/2 - 60, boardHeight/2 - 60)
+      // Start menu
+      textSize(60);
+      text("Start", boardWidth/2 - 60, boardHeight/2 - 60)
     }
 }
 
 function moveScreen() {
-  if(doodlerY < 50) {
+  if(dinoY < 50) {
     platYChange = 3
-    doodlerVelocity += 0.25
+    dinoVelocity += 0.25
   } else {
     platYChange = 0
   }
@@ -90,38 +97,34 @@ function mousePressed() {
   if(gameStarted === false) {
     score = 0
     setupPlatforms()
-    doodlerY = 350
-    doodlerX = platformList[platformList.length - 1].xPos + 15
-    doodlerVelocity = 0.1
+    dinoY = 350
+    dinoX = platformList[platformList.length - 1].xPos + 15
+    dinoVelocity = 0.1
     gameStarted = true
   }
 }
 
-// ===========================
-//  Doodler
-// ===========================
-function drawDoodler() {
+//  dino
+function drawdino() {
   fill(204, 200, 52)
-  // rect(doodlerX, doodlerY, doodlerSize, doodlerSize);
-  image(doodlerImg, doodlerX, doodlerY, doodlerSize, doodlerSize)
+  // rect(dinoX, dinoY, dinoSize, dinoSize);
+  image(dinoImg, dinoX, dinoY, dinoSize, dinoSize)
 }
 
-function moveDoodler() {
-  // doodler falls with gravity
-  doodlerVelocity += 0.2
-  doodlerY += doodlerVelocity
+function movedino() {
+  // dino falls with gravity
+  dinoVelocity += 0.2
+  dinoY += dinoVelocity
 
   if (keyIsDown(LEFT_ARROW)) {
-    doodlerX -= doodlerXSpeed
+    dinoX -= dinoXSpeed
   }
   if (keyIsDown(RIGHT_ARROW)) {
-    doodlerX += doodlerXSpeed
+    dinoX += dinoXSpeed
   }
 }
 
-// ===========================
 //  Platforms
-// ===========================
 function setupPlatforms() {
   for(var i=0; i < numOfPlatforms; i++) {
     var platGap = height / numOfPlatforms
@@ -155,32 +158,30 @@ function Platform(newPlatformYPosition) {
   this.height = platformHeight
 }
 
-// ===========================
 //  Collisions
-// ===========================
 function checkCollision() {
   platformList.forEach(function(plat) {
     if(
-      doodlerX < plat.xPos + plat.width &&
-      doodlerX + doodlerSize > plat.xPos &&
-      doodlerY + doodlerSize < plat.yPos + plat.height &&
-      doodlerY + doodlerSize > plat.yPos &&
-      doodlerVelocity > 0
+      dinoX < plat.xPos + plat.width &&
+      dinoX + dinoSize > plat.xPos &&
+      dinoY + dinoSize < plat.yPos + plat.height &&
+      dinoY + dinoSize > plat.yPos &&
+      dinoVelocity > 0
     ) {
-      doodlerVelocity = -10
+      dinoVelocity = -10
     }
   });
   
-  if(doodlerY > height) {
+  if(dinoY > height) {
     gameOver = true
     gameStarted = false
     platformList = []
   }
   
   // screen wraps from left to right
-  if(doodlerX < -doodlerSize) {
-    doodlerX = width
-  } else if(doodlerX > width) {
-    doodlerX = -doodlerSize
+  if(dinoX < -dinoSize) {
+    dinoX = width
+  } else if(dinoX > width) {
+    dinoX = -dinoSize
   }
 }
