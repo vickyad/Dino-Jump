@@ -1,176 +1,181 @@
-const grid = document.getElementById('grid')
-const doodler = document.createElement('IMG')
+/*Downloaded from https://www.codeseek.co/ainc/doodle-jump-complete-ZxGXwd */
+const restartDialog = document.getElementById('restart-dialog')
+const cancelButton = document.getElementById('cancel')
+const confirmButton = document.getElementById('confirm')
 
-let doodlerLeftSpace = 50
-let startPoint = 150
-let doodlerBottomSpace = startPoint
-let isGameOver = false
-let plataformCount = 5
-let plataforms = []
-let upTimerId
-let downTimerId
-let isJumping = true
-let isGoingLeft = false
-let isGoingRight = false
-let leftTimerId
-let rightTimerId
-let score = 0
+const boardWidth = window.innerWidth > window.innerHeight? window.innerWidth * 0.55 : window.innerWidth
+const boardHeight = window.innerHeight
 
-function createDoodler(){
-    doodler.classList.add('doodler')
+let doodlerSize = Math.floor(boardHeight / 10)
+let doodlerX;
+let doodlerY;
+let doodlerVelocity;
+let doodlerXSpeed = 4;
+let platformHeight = Math.floor(boardHeight / 58)
+let platformWidth = platformHeight * 5
+let numOfPlatforms = Math.floor(boardHeight / 130);
+let platformList = [];
+let platYChange = 0;
+let gameStarted;
+let score = 0;
+let doodlerImg;
+let platformImg;
+let gameOver = false
 
-    doodler.setAttribute("src", "./assets/dinossauro.svg")
-    doodlerLeftSpace = plataforms[0].left
-    doodler.style.left = `${doodlerLeftSpace}px`
-    doodler.style.bottom = `${doodlerBottomSpace}px`
-    grid.appendChild(doodler)
+
+restartDialog.close()
+
+// ===========================
+//  Preload the Image Sprites
+// ===========================
+function preload() {
+    doodlerImg = loadImage('https://www.flaticon.com/svg/static/icons/svg/145/145321.svg')
+    platformImg = loadImage("https://raw.githubusercontent.com/JasonMize/coding-league-assets/master/doodle-jump-platform.png")
 }
 
-class Plataform {
-    constructor(newPlataformBottom) {
-        this.bottom = newPlataformBottom
-        this.left = Math.random() * 315
-        this.visual = document.createElement('div')
-
-        this.visual.classList.add('plataform')
-        this.visual.style.left = `${this.left}px`
-        this.visual.style.bottom = `${this.bottom}px`
-
-        grid.appendChild(this.visual)
-    }
+// ===========================
+//  Controllers
+// ===========================
+function setup() {
+    createCanvas(boardWidth,boardHeight);
+    frameRate(60);
+    gameStarted = false;
 }
 
+function draw() {
+    background(247, 239, 231);
+    
+    if(gameStarted) {
+        //Draw the game
+        drawPlatforms();
+        drawDoodler();
+        checkCollision();
+        moveDoodler();
+        moveScreen();
+    } else if (gameOver){
+        gameOver = false
 
-function createPlataforms() {
-    let plataformGap = 600 / plataformCount
-
-    for(let i = 0; i < plataformCount; i++) {
-        let newPlataformBottom = 100 + i * plataformGap
-        let newPlataform = new Plataform(newPlataformBottom)
-        plataforms.push(newPlataform)
-    }
-}
-
-function movePlataforms() {
-    if(doodlerBottomSpace > 200) {
-        plataforms.forEach(plataform => {
-            plataform.bottom -= 4
-            plataform.visual.style.bottom = `${plataform.bottom}px`
-
-            if(plataform.bottom < 10) {
-                plataforms[0].visual.classList.remove('plataform')
-                plataforms.shift()
-
-                let newPlataform = new Plataform(600)
-                plataforms.push(newPlataform)
-
-                score++
-            }
+        // Check if the user would like to restart the game
+        restartDialog.showModal()
+        confirmButton.addEventListener('click', () => {
+            restartDialog.close()
         })
-    }
-}
-
-function jump() {
-    clearInterval(downTimerId)
-    isJumping = true
-    upTimerId = setInterval(() => {
-        doodlerBottomSpace += 20
-        doodler.style.bottom = `${doodlerBottomSpace}px`
-        if(doodlerBottomSpace > startPoint + 200) {
-            fall()
-        }
-    }, 30)
-}
-
-function fall() {
-    clearInterval(upTimerId)
-    isJumping = false
-    downTimerId = setInterval(() => {
-        doodlerBottomSpace -= 5
-        doodler.style.bottom = `${doodlerBottomSpace}px`
-
-        if(doodlerBottomSpace <= 0) {
-            gameOver()
-        }
-
-        plataforms.forEach(plataform => {
-            if((doodlerBottomSpace >= plataform.bottom) && (doodlerBottomSpace <= (plataform.bottom + 15)) && ((doodlerLeftSpace + 60) >= plataform.left) && (doodlerLeftSpace <= (plataform.left + 85)) && !isJumping) {
-                console.log('landed')
-                startPoint = doodlerBottomSpace
-                jump()
-            }
+        cancelButton.addEventListener('click', () => {
+            restartDialog.close()
+            remove()
         })
-    }, 30)
-}
-
-function gameOver() {
-    console.log('game over')
-    isGameOver = true
-    while(grid.firstChild){
-        grid.removeChild(grid.firstChild)
-    }
-    grid.innerHTML = score
-    clearInterval(upTimerId)
-    clearInterval(downTimerId)
-    clearInterval(leftTimerId)
-    clearInterval(rightTimerId)
-}
-
-function control(e) {
-    switch(e.key){
-        case 'ArrowLeft':
-            moveLeft()
-            break
-        case 'ArrowRight':
-            moveRight()
-            break
-        case 'ArrowUp':
-            moveStraight()
-            break
+    } else {
+        // Start menu
+        textSize(60);
+        text("Start", boardWidth/2 - 60, boardHeight/2 - 60);
     }
 }
 
-function moveLeft() {
-    clearInterval(rightTimerId)
-    isGoingRight = false
-
-    isGoingLeft = true
-    leftTimeId = setInterval(() => {
-        if(doodlerLeftSpace >= 0) {
-            doodlerLeftSpace -= 5
-            doodler.style.left = `${doodlerLeftSpace}px`
-        }
-    }, 20)
+function moveScreen() {
+  if(doodlerY < 50) {
+    platYChange = 3;
+    doodlerVelocity += 0.25;
+  } else {
+    platYChange = 0;
+  }
 }
 
-function moveRight() {
-    clearInterval(leftTimerId)
-    isGoingLeft = false
-
-    isGoingRight = true
-    rightTimerId  = setInterval(() => {
-        if(doodlerLeftSpace <= (400 - 60)) {
-            doodlerLeftSpace += 5
-            doodler.style.left = `${doodlerLeftSpace}px`
-        }
-    }, 20)
+// Start Game
+function mousePressed() {
+  if(gameStarted === false) {
+    score = 0;
+    setupPlatforms();
+    doodlerY = 350;
+    doodlerX = platformList[platformList.length - 1].xPos + 15;
+    doodlerVelocity = 0.1;
+    gameStarted = true;
+  }
 }
 
-function moveStraight() {
-    isGoingLeft = false
-    isGoingRight = false
-    clearInterval(leftTimerId)
-    clearInterval(rightTimerId)
+// ===========================
+//  Doodler
+// ===========================
+function drawDoodler() {
+  fill(204, 200, 52);
+  // rect(doodlerX, doodlerY, doodlerSize, doodlerSize);
+  image(doodlerImg, doodlerX, doodlerY, doodlerSize, doodlerSize);
 }
 
-function main() {
-    if(!isGameOver) {
-        createPlataforms()
-        createDoodler()
-        setInterval(movePlataforms, 30)
-        jump()
-        document.addEventListener('keydown', control)
+function moveDoodler() {
+  // doodler falls with gravity
+  doodlerVelocity += 0.2;
+  doodlerY += doodlerVelocity;
+
+  if (keyIsDown(LEFT_ARROW)) {
+    doodlerX -= doodlerXSpeed;
+  }
+  if (keyIsDown(RIGHT_ARROW)) {
+    doodlerX += doodlerXSpeed;
+  }
+}
+
+// ===========================
+//  Platforms
+// ===========================
+function setupPlatforms() {
+  for(var i=0; i < numOfPlatforms; i++) {
+    var platGap = height / numOfPlatforms;
+    var newPlatformYPosition = i * platGap;
+    var plat = new Platform(newPlatformYPosition);
+    platformList.push(plat);
+  }
+}
+
+function drawPlatforms() {
+  fill(106, 186, 40);
+  platformList.forEach(function(plat) {
+    // move all platforms down
+    plat.yPos += platYChange;
+    // rect(plat.xPos, plat.yPos, plat.width, plat.height);
+    image(platformImg, plat.xPos, plat.yPos, plat.width, plat.height);
+
+    if(plat.yPos > boardHeight - 50) {
+      score++;
+      platformList.pop();
+      var newPlat = new Platform(0);
+      platformList.unshift(newPlat); // add to front
     }
+  });
 }
 
-main() // attach to button
+function Platform(newPlatformYPosition) {
+  this.xPos = random(15, boardWidth - 100);
+  this.yPos = newPlatformYPosition;
+  this.width = platformWidth;
+  this.height = platformHeight;
+}
+
+// ===========================
+//  Collisions
+// ===========================
+function checkCollision() {
+  platformList.forEach(function(plat) {
+    if(
+      doodlerX < plat.xPos + plat.width &&
+      doodlerX + doodlerSize > plat.xPos &&
+      doodlerY + doodlerSize < plat.yPos + plat.height &&
+      doodlerY + doodlerSize > plat.yPos &&
+      doodlerVelocity > 0
+    ) {
+      doodlerVelocity = -10;
+    }
+  });
+  
+  if(doodlerY > height) {
+    gameOver = true
+    gameStarted = false;
+    platformList = [];
+  }
+  
+  // screen wraps from left to right
+  if(doodlerX < -doodlerSize) {
+    doodlerX = width;
+  } else if(doodlerX > width) {
+    doodlerX = -doodlerSize;
+  }
+}
