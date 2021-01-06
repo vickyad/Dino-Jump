@@ -52,6 +52,8 @@ function draw() {
         checkCollision();
         moveDoodler();
         moveScreen();
+        textSize(60);
+        text(score, boardWidth - 80, boardHeight * 0.08)
     } else if (gameOver){
         gameOver = false
 
