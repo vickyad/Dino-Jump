@@ -7,19 +7,20 @@ const boardWidth = window.innerWidth > window.innerHeight? window.innerWidth * 0
 const boardHeight = window.innerHeight
 
 let doodlerSize = Math.floor(boardHeight / 10)
-let doodlerX;
-let doodlerY;
-let doodlerVelocity;
-let doodlerXSpeed = 4;
-let platformHeight = Math.floor(boardHeight / 58)
-let platformWidth = platformHeight * 5
-let numOfPlatforms = Math.floor(boardHeight / 130);
-let platformList = [];
-let platYChange = 0;
-let gameStarted;
-let score = 0;
-let doodlerImg;
-let platformImg;
+let doodlerX
+let doodlerY
+let doodlerVelocity
+let doodlerXSpeed = 4
+let platformHeight = Math.floor(boardHeight / 45)
+let platformWidth = platformHeight * 3
+let numOfPlatforms = Math.floor(boardHeight / 130)
+let platformList = []
+let platYChange = 0
+let gameStarted
+let score = 0
+let doodlerImg
+let platformImg
+let backgroundImg
 let gameOver = false
 
 
@@ -29,29 +30,31 @@ restartDialog.close()
 //  Preload the Image Sprites
 // ===========================
 function preload() {
-    doodlerImg = loadImage('https://www.flaticon.com/svg/static/icons/svg/145/145321.svg')
-    platformImg = loadImage("https://raw.githubusercontent.com/JasonMize/coding-league-assets/master/doodle-jump-platform.png")
+    doodlerImg = loadImage('./assets/dinossauro.svg')
+    platformImg = loadImage('./assets/platform.png')
+    backgroundImg = loadImage('./assets/background.png')
 }
 
 // ===========================
 //  Controllers
 // ===========================
 function setup() {
-    createCanvas(boardWidth,boardHeight);
-    frameRate(60);
-    gameStarted = false;
+    createCanvas(boardWidth,boardHeight)
+    frameRate(60)
+    gameStarted = false
 }
 
 function draw() {
-    background(247, 239, 231);
+  background(backgroundImg)
     
     if(gameStarted) {
         //Draw the game
-        drawPlatforms();
-        drawDoodler();
-        checkCollision();
-        moveDoodler();
-        moveScreen();
+        drawPlatforms()
+        drawDoodler()
+        checkCollision()
+        moveDoodler()
+        moveScreen()
+        fill('#121212')
         textSize(60);
         text(score, boardWidth - 80, boardHeight * 0.08)
     } else if (gameOver){
@@ -69,28 +72,28 @@ function draw() {
     } else {
         // Start menu
         textSize(60);
-        text("Start", boardWidth/2 - 60, boardHeight/2 - 60);
+        text("Start", boardWidth/2 - 60, boardHeight/2 - 60)
     }
 }
 
 function moveScreen() {
   if(doodlerY < 50) {
-    platYChange = 3;
-    doodlerVelocity += 0.25;
+    platYChange = 3
+    doodlerVelocity += 0.25
   } else {
-    platYChange = 0;
+    platYChange = 0
   }
 }
 
 // Start Game
 function mousePressed() {
   if(gameStarted === false) {
-    score = 0;
-    setupPlatforms();
-    doodlerY = 350;
-    doodlerX = platformList[platformList.length - 1].xPos + 15;
-    doodlerVelocity = 0.1;
-    gameStarted = true;
+    score = 0
+    setupPlatforms()
+    doodlerY = 350
+    doodlerX = platformList[platformList.length - 1].xPos + 15
+    doodlerVelocity = 0.1
+    gameStarted = true
   }
 }
 
@@ -98,21 +101,21 @@ function mousePressed() {
 //  Doodler
 // ===========================
 function drawDoodler() {
-  fill(204, 200, 52);
+  fill(204, 200, 52)
   // rect(doodlerX, doodlerY, doodlerSize, doodlerSize);
-  image(doodlerImg, doodlerX, doodlerY, doodlerSize, doodlerSize);
+  image(doodlerImg, doodlerX, doodlerY, doodlerSize, doodlerSize)
 }
 
 function moveDoodler() {
   // doodler falls with gravity
-  doodlerVelocity += 0.2;
-  doodlerY += doodlerVelocity;
+  doodlerVelocity += 0.2
+  doodlerY += doodlerVelocity
 
   if (keyIsDown(LEFT_ARROW)) {
-    doodlerX -= doodlerXSpeed;
+    doodlerX -= doodlerXSpeed
   }
   if (keyIsDown(RIGHT_ARROW)) {
-    doodlerX += doodlerXSpeed;
+    doodlerX += doodlerXSpeed
   }
 }
 
@@ -121,35 +124,35 @@ function moveDoodler() {
 // ===========================
 function setupPlatforms() {
   for(var i=0; i < numOfPlatforms; i++) {
-    var platGap = height / numOfPlatforms;
-    var newPlatformYPosition = i * platGap;
-    var plat = new Platform(newPlatformYPosition);
-    platformList.push(plat);
+    var platGap = height / numOfPlatforms
+    var newPlatformYPosition = i * platGap
+    var plat = new Platform(newPlatformYPosition)
+    platformList.push(plat)
   }
 }
 
 function drawPlatforms() {
-  fill(106, 186, 40);
+  fill(106, 186, 40)
   platformList.forEach(function(plat) {
     // move all platforms down
-    plat.yPos += platYChange;
+    plat.yPos += platYChange
     // rect(plat.xPos, plat.yPos, plat.width, plat.height);
-    image(platformImg, plat.xPos, plat.yPos, plat.width, plat.height);
+    image(platformImg, plat.xPos, plat.yPos, plat.width, plat.height)
 
     if(plat.yPos > boardHeight - 50) {
-      score++;
-      platformList.pop();
-      var newPlat = new Platform(0);
-      platformList.unshift(newPlat); // add to front
+      score++
+      platformList.pop()
+      var newPlat = new Platform(0)
+      platformList.unshift(newPlat) // add to front
     }
   });
 }
 
 function Platform(newPlatformYPosition) {
-  this.xPos = random(15, boardWidth - 100);
-  this.yPos = newPlatformYPosition;
-  this.width = platformWidth;
-  this.height = platformHeight;
+  this.xPos = random(15, boardWidth - 100)
+  this.yPos = newPlatformYPosition
+  this.width = platformWidth
+  this.height = platformHeight
 }
 
 // ===========================
@@ -164,20 +167,20 @@ function checkCollision() {
       doodlerY + doodlerSize > plat.yPos &&
       doodlerVelocity > 0
     ) {
-      doodlerVelocity = -10;
+      doodlerVelocity = -10
     }
   });
   
   if(doodlerY > height) {
     gameOver = true
-    gameStarted = false;
-    platformList = [];
+    gameStarted = false
+    platformList = []
   }
   
   // screen wraps from left to right
   if(doodlerX < -doodlerSize) {
-    doodlerX = width;
+    doodlerX = width
   } else if(doodlerX > width) {
-    doodlerX = -doodlerSize;
+    doodlerX = -doodlerSize
   }
 }
